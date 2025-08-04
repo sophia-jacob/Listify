@@ -139,3 +139,77 @@ window.addEventListener('DOMContentLoaded', () => {
         editor.innerHTML = savedNotes;
     }
 });
+
+
+// === CALENDAR SETUP ===
+const calendar = document.getElementById('calendar');
+const modal = document.getElementById('eventModal');
+const selectedDateSpan = document.getElementById('selectedDate');
+const eventInput = document.getElementById('eventInput');
+const saveEventBtn = document.getElementById('saveEventBtn');
+const closeModal = document.getElementById('closeModal');
+
+let selectedDate = null;
+
+// Generate calendar for current month
+function generateCalendar() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const firstDay = new Date(year, month, 1).getDay();
+    calendar.innerHTML = '';
+
+    for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement('div');
+        calendar.appendChild(empty);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = `${year}-${month + 1}-${day}`;
+        const div = document.createElement('div');
+        div.classList.add('calendar-day');
+        div.textContent = day;
+
+        if (localStorage.getItem(`event-${date}`)) {
+            div.classList.add('event');
+        }
+
+        div.addEventListener('click', () => {
+            selectedDate = date;
+            selectedDateSpan.textContent = date;
+            eventInput.value = localStorage.getItem(`event-${date}`) || '';
+            modal.style.display = 'block';
+        });
+
+        calendar.appendChild(div);
+    }
+}
+
+// Save event
+saveEventBtn.addEventListener('click', () => {
+    if (selectedDate) {
+        const eventText = eventInput.value.trim();
+        if (eventText !== '') {
+            localStorage.setItem(`event-${selectedDate}`, eventText);
+        } else {
+            localStorage.removeItem(`event-${selectedDate}`);
+        }
+        modal.style.display = 'none';
+        generateCalendar();
+    }
+});
+
+closeModal.addEventListener('click', () => {
+    modal.style.display = 'none';
+});
+
+window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+
+// Run on load
+generateCalendar();

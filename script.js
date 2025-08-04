@@ -140,46 +140,54 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-
-// === CALENDAR SETUP ===
 const calendar = document.getElementById('calendar');
 const modal = document.getElementById('eventModal');
 const selectedDateSpan = document.getElementById('selectedDate');
 const eventInput = document.getElementById('eventInput');
 const saveEventBtn = document.getElementById('saveEventBtn');
 const closeModal = document.getElementById('closeModal');
+const monthYearDisplay = document.getElementById('monthYearDisplay');
+const prevMonthBtn = document.getElementById('prevMonthBtn');
+const nextMonthBtn = document.getElementById('nextMonthBtn');
 
 let selectedDate = null;
+let currentDate = new Date();
 
-// Generate calendar for current month
-function generateCalendar() {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth();
+function formatDateKey(date) {
+    return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+}
+
+function generateCalendar(date) {
+    const year = date.getFullYear();
+    const month = date.getMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDayIndex = new Date(year, month, 1).getDay();
 
-    const firstDay = new Date(year, month, 1).getDay();
     calendar.innerHTML = '';
+    monthYearDisplay.textContent = `${date.toLocaleString('default', { month: 'long' })} ${year}`;
 
-    for (let i = 0; i < firstDay; i++) {
-        const empty = document.createElement('div');
-        calendar.appendChild(empty);
+    // Fill empty slots before first day
+    for (let i = 0; i < firstDayIndex; i++) {
+        calendar.appendChild(document.createElement('div'));
     }
 
+    // Create day buttons
     for (let day = 1; day <= daysInMonth; day++) {
-        const date = `${year}-${month + 1}-${day}`;
+        const cellDate = new Date(year, month, day);
+        const key = formatDateKey(cellDate);
+
         const div = document.createElement('div');
         div.classList.add('calendar-day');
         div.textContent = day;
 
-        if (localStorage.getItem(`event-${date}`)) {
+        if (localStorage.getItem(`event-${key}`)) {
             div.classList.add('event');
         }
 
         div.addEventListener('click', () => {
-            selectedDate = date;
-            selectedDateSpan.textContent = date;
-            eventInput.value = localStorage.getItem(`event-${date}`) || '';
+            selectedDate = key;
+            selectedDateSpan.textContent = key;
+            eventInput.value = localStorage.getItem(`event-${key}`) || '';
             modal.style.display = 'block';
         });
 
@@ -187,7 +195,18 @@ function generateCalendar() {
     }
 }
 
-// Save event
+// Navigation
+prevMonthBtn.addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    generateCalendar(currentDate);
+});
+
+nextMonthBtn.addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    generateCalendar(currentDate);
+});
+
+// Save Event
 saveEventBtn.addEventListener('click', () => {
     if (selectedDate) {
         const eventText = eventInput.value.trim();
@@ -197,7 +216,7 @@ saveEventBtn.addEventListener('click', () => {
             localStorage.removeItem(`event-${selectedDate}`);
         }
         modal.style.display = 'none';
-        generateCalendar();
+        generateCalendar(currentDate);
     }
 });
 
@@ -211,5 +230,5 @@ window.addEventListener('click', (e) => {
     }
 });
 
-// Run on load
-generateCalendar();
+// Initial render
+generateCalendar(currentDate);

@@ -118,3 +118,24 @@ stopBtn.addEventListener('click', stopTimer);
 resetBtn.addEventListener('click', resetTimer);
 
 updateDisplay();
+
+
+// Rich text formatting
+function format(command) {
+    document.execCommand(command, false, null);
+}
+
+// Save notes to localStorage when changed
+const editor = document.getElementById('editor');
+
+editor.addEventListener('input', () => {
+    localStorage.setItem('richNotes', editor.innerHTML);
+});
+
+// Load saved notes when page loads
+window.addEventListener('DOMContentLoaded', () => {
+    const savedNotes = localStorage.getItem('richNotes');
+    if (savedNotes) {
+        editor.innerHTML = savedNotes;
+    }
+});
